@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- The Lovelace Threshold: A Governance Diagnostic Beyond Bounded Systems
+     Static, self-contained, no backend. Drop on GitHub Pages as-is.
+     The diagnostic is domain-agnostic by design; tailoring is done by hand. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Lovelace Threshold: A Governance Diagnostic Beyond Bounded Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2EEE3; --paper-2:#EAE4D5;
+    --ink:#1B1A16; --ink-soft:#494438; --ink-faint:#8C8473;
+    --line:#CFC7B4; --line-strong:#B4A98F;
+    --signal:#B5341F; --signal-soft:#E9C6BC;
+    --verified:#3D6B57; --verified-soft:#C6D8CD;
+    --amber:#B07A1E; --amber-soft:#E8D7B0;
+    --shadow:rgba(27,26,22,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper);color:var(--ink);
+    font-family:'Charter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.45}
+  body{background-image:
+      radial-gradient(circle at 12% -10%, rgba(255,255,255,.5), transparent 40%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    min-height:100vh}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+  header{border-bottom:1.5px solid var(--ink);padding:26px 0 18px}
+  .brand .kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.32em;
+    text-transform:uppercase;color:var(--ink-faint)}
+  .brand h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(30px,5vw,52px);
+    line-height:.98;letter-spacing:-.01em;margin-top:6px}
+  .brand h1 em{font-style:italic;color:var(--signal)}
+  .brand .sub{font-size:14px;color:var(--ink-soft);max-width:60ch;margin-top:10px}
+  .note{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);margin-top:14px;letter-spacing:.02em}
+  .note b{color:var(--signal);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:1fr 1.15fr;gap:34px;padding:34px 0 56px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .panel-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .panel-label::before{content:"";width:7px;height:7px;background:var(--ink);transform:rotate(45deg)}
+
+  /* domain inputs */
+  .domain{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+  @media(max-width:520px){.domain{grid-template-columns:1fr}}
+  .field label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:5px}
+  .field input{width:100%;font-family:'Hanken Grotesk',sans-serif;font-size:13.5px;color:var(--ink);
+    background:var(--paper);border:1.5px solid var(--line-strong);border-radius:3px;padding:9px 11px;transition:.13s}
+  .field input:focus{outline:none;border-color:var(--ink);background:#fff}
+  .field input::placeholder{color:var(--ink-faint)}
+
+  .frame{font-size:13.5px;color:var(--ink-soft);font-style:italic;border-left:2px solid var(--line-strong);
+    padding:2px 0 2px 14px;margin-bottom:28px;font-family:'Fraunces',serif}
+
+  .q{margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:20px}
+  .q:last-child{border-bottom:none}
+  .q-head{display:flex;gap:12px;align-items:baseline;margin-bottom:11px}
+  .q-num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-faint);flex-shrink:0;padding-top:1px}
+  .q-text{font-size:15px;font-weight:600;color:var(--ink);line-height:1.32}
+  .q-text .gate-tag{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+    background:var(--signal);color:#fff;padding:2px 6px;border-radius:2px;vertical-align:middle;margin-left:8px;font-weight:500}
+  .q-help{font-size:12.5px;color:var(--ink-faint);margin:4px 0 12px 36px;line-height:1.4}
+  .opts{display:flex;flex-direction:column;gap:7px;margin-left:36px}
+  .opt{font-size:13.5px;cursor:pointer;border:1.5px solid var(--line-strong);background:var(--paper);
+    border-radius:3px;padding:10px 13px;transition:.13s;display:flex;align-items:center;gap:11px;color:var(--ink-soft)}
+  .opt:hover{border-color:var(--ink);color:var(--ink)}
+  .opt .dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--line-strong);flex-shrink:0;transition:.13s}
+  .opt.sel{border-color:var(--ink);background:var(--paper-2);color:var(--ink);font-weight:500}
+  .opt.sel .dot{border-color:var(--ink);background:var(--ink);box-shadow:inset 0 0 0 2.5px var(--paper-2)}
+
+  .readout{position:sticky;top:20px}
+  .verdict-card{border:1.5px solid var(--ink);border-radius:4px;overflow:hidden;
+    box-shadow:6px 6px 0 var(--shadow);background:var(--paper);margin-bottom:24px}
+  .verdict-top{display:grid;grid-template-columns:auto 1fr}
+  .meter{width:118px;border-right:1.5px solid var(--ink);position:relative;background:
+    linear-gradient(to bottom, var(--verified-soft) 0%, var(--paper) 42%, var(--paper) 50%, var(--signal-soft) 100%);padding:14px 0}
+  .meter-inner{position:relative;height:248px;margin:0 14px}
+  .axis{position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:var(--line-strong);transform:translateX(-50%)}
+  .tick{position:absolute;left:0;right:0;font-family:'IBM Plex Mono',monospace;font-size:8.5px;
+    letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase}
+  .tick.top{top:-2px}.tick.bot{bottom:-2px}
+  .thresh-line{position:absolute;left:-14px;right:-14px;height:0;border-top:2px dashed var(--signal);
+    transition:top .5s cubic-bezier(.2,.8,.2,1)}
+  .thresh-line span{position:absolute;right:0;top:-13px;font-family:'IBM Plex Mono',monospace;
+    font-size:8px;letter-spacing:.1em;color:var(--signal);background:var(--paper);padding:1px 3px;text-transform:uppercase}
+  .marker{position:absolute;left:50%;width:20px;height:20px;border-radius:50%;border:2.5px solid var(--ink);
+    background:var(--paper);transform:translate(-50%,-50%);transition:top .6s cubic-bezier(.2,.8,.2,1);z-index:3}
+  .marker::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--ink)}
+  .marker-label{position:absolute;left:calc(50% + 16px);font-family:'IBM Plex Mono',monospace;font-size:9px;
+    white-space:nowrap;transform:translateY(-50%);transition:top .6s cubic-bezier(.2,.8,.2,1);color:var(--ink-soft)}
+  .verdict-body{padding:20px 22px;display:flex;flex-direction:column;justify-content:center}
+  .verdict-state{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+  .verdict-name{font-family:'Fraunces',serif;font-weight:600;font-size:25px;line-height:1.04;margin:8px 0 12px;letter-spacing:-.01em}
+  .verdict-name.s-ok{color:var(--verified)} .verdict-name.s-mid{color:var(--amber)} .verdict-name.s-bad{color:var(--signal)}
+  .verdict-desc{font-size:13px;color:var(--ink-soft);line-height:1.45}
+  .gate-flag{margin-top:13px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.5;
+    background:var(--signal-soft);border-left:3px solid var(--signal);padding:9px 11px;color:#6e2114;border-radius:0 3px 3px 0}
+  .gate-flag.clear{background:var(--verified-soft);border-color:var(--verified);color:#274a3b}
+
+  .gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  .gauge{border:1.5px solid var(--line-strong);border-radius:4px;padding:14px 14px 12px;background:var(--paper)}
+  .gauge .g-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
+  .gauge .g-val{font-family:'Fraunces',serif;font-weight:600;font-size:34px;line-height:1;margin:6px 0 3px}
+  .gauge .g-state{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+  .gauge .g-bar{height:5px;background:var(--line);border-radius:3px;margin-top:9px;overflow:hidden}
+  .gauge .g-fill{height:100%;border-radius:3px;transition:width .5s ease,background .3s}
+
+  .block{border:1.5px solid var(--line-strong);border-radius:4px;background:var(--paper);padding:22px;margin-bottom:18px}
+  .block .panel-label{margin-bottom:18px}
+  .dim{margin-bottom:13px}
+  .dim-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:5px}
+  .dim-name{color:var(--ink-soft);font-weight:500}
+  .dim-score{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink)}
+  .dim-bar{height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+  .dim-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+  .bs{border-top:1px solid var(--line);padding-top:16px;margin-top:16px}
+  .bs-item{margin-bottom:15px}
+  .bs-head{display:flex;gap:9px;align-items:baseline;margin-bottom:4px}
+  .bs-dot{width:8px;height:8px;background:var(--signal);transform:rotate(45deg);flex-shrink:0;margin-top:4px}
+  .bs-name{font-weight:600;font-size:13.5px;color:var(--ink)}
+  .bs-rec{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-left:17px}
+  .bs-rec .lead{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:2px}
+  .bs-clean{font-size:13px;color:var(--verified);font-style:italic;font-family:'Fraunces',serif}
+
+  footer{border-top:1.5px solid var(--ink);padding:20px 0 44px;font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;color:var(--ink-faint);letter-spacing:.03em;line-height:1.7}
+  footer b{color:var(--ink-soft)}
+  .consult{font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:var(--ink-soft);
+    border-top:1px solid var(--line);margin-top:16px;padding-top:16px;line-height:1.5}
+  .consult b{color:var(--ink);font-family:'Fraunces',serif;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <h1>The Lovelace <em>Threshold</em></h1>
+      <p class="sub">A diagnostic to examine a rule, policy, or accountability instrument and finds where it has gone blind to what actually produces the outcomes it governs. It's point at which it stays formally valid but is no longer enough.</p>
+    </div>
+    <div class="note"><b>Assessment Use Only:</b> Answer for the instrument you are checking. This is generic by design; the same logic applies to any governed system.</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+
+    <section>
+      <div class="panel-label">Interrogation</div>
+
+      <div class="domain">
+        <div class="field"><label>What are you assessing?</label>
+          <input id="inName" placeholder="e.g. our records-access policy" autocomplete="off"></div>
+        <div class="field"><label>What does it produce?</label>
+          <input id="inOut" placeholder="e.g. decisions to release records" autocomplete="off"></div>
+      </div>
+
+      <div class="frame" id="frame"></div>
+      <div id="questions"></div>
+    </section>
+
+    <section class="readout">
+      <div class="panel-label">Threshold readout</div>
+
+      <div class="verdict-card">
+        <div class="verdict-top">
+          <div class="meter">
+            <div class="meter-inner">
+              <div class="axis"></div>
+              <div class="tick top">Enough<br>for now</div>
+              <div class="tick bot">No longer<br>enough</div>
+              <div class="thresh-line" id="threshLine"><span>threshold</span></div>
+              <div class="marker" id="marker"></div>
+              <div class="marker-label" id="markerLabel">reach</div>
+            </div>
+          </div>
+          <div class="verdict-body">
+            <div class="verdict-state">Verdict</div>
+            <div class="verdict-name s-mid" id="verdictName">Awaiting input</div>
+            <div class="verdict-desc" id="verdictDesc">Answer the interrogation to place this instrument against the threshold. The threshold itself rises as the thing being governed becomes harder to predict in advance.</div>
+            <div class="gate-flag" id="gateFlag" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gauges" id="gauges"></div>
+
+      <div class="block">
+        <div class="panel-label">Reading by dimension</div>
+        <div id="dimList"></div>
+        <div class="bs" id="blindspots"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div><b>HOW TO READ:</b> Documentation coverage is a precondition. The floor is never a target; below full coverage the instrument is, by definition, inside the threshold no matter what else reads well.</div>
+    <div style="margin-top:6px"><b>SCOPE:</b> Generic. The diagnostic logic is fixed; the specific measures change with the domain. This is a prototype and the scoring shows the logic. This is NOT a certified audit.</div>
+    <div class="consult"><b>Want it tailored?</b> This is an open version. For a version for your domain requires your own measures, record classes, a working dashboard. Connect for consultation.</div>
+  </footer>
+</div>
+
+<script>
+/* ===== The Lovelace Threshold — diagnostic logic =====
+   Fixed spine, generic across domains. Documentation coverage is a hard floor, not a weight. */
+
+const DIMS = [
+  { id:"spec", role:"spec", name:"How predictable the system is",
+    q:"Was this instrument written for behaviour you can fully predict in advance?",
+    opts:[
+      {l:"Fully predictable and bounded — it only does what it was told", s:100},
+      {l:"Mostly predictable, with some effects no one set out", s:55},
+      {l:"It produces effects nobody specified in advance", s:15}
+    ]},
+  { id:"reach", role:"reach", name:"What the instrument reaches", fam:"governance",
+    q:"What does this instrument actually govern?",
+    opts:[
+      {l:"Only the final result — the decision or output", s:18},
+      {l:"The result, plus a few checks along the way", s:55},
+      {l:"How the result is made — the criteria, the steps, what gets left out", s:100}
+    ]},
+  { id:"docs", role:"gate", name:"Documentation coverage", fam:"governance", gate:true,
+    q:"How much of how the outcome is made is actually written down and checkable?",
+    help:"Four things: where it came from, how it was handled, what was left out, and how someone can challenge or withdraw it. Full coverage is the floor — not a goal.",
+    opts:[
+      {l:"All four, written down by design", s:100},
+      {l:"Some of it documented", s:50},
+      {l:"Little or none", s:10}
+    ]},
+  { id:"lag", role:"reach", name:"Response lag", fam:"performance",
+    q:"When something changes early in the process, how fast can the instrument respond?",
+    opts:[
+      {l:"Faster than the thing itself changes", s:92},
+      {l:"About the same speed", s:50},
+      {l:"It always trails behind", s:15}
+    ]},
+  { id:"contest", role:"reach", name:"Challenge and withdrawal", fam:"performance",
+    q:"Can the people affected challenge it or pull out before harm sets in?",
+    opts:[
+      {l:"Yes — before any harm, built in", s:95},
+      {l:"Only an appeal after the fact", s:45},
+      {l:"No way to", s:10}
+    ]},
+  { id:"antiretro", role:"reach", name:"No quiet narrowing", fam:"governance",
+    q:"Can this instrument be narrowed after the fact to hide records already in dispute?",
+    opts:[
+      {l:"A standing rule prevents that", s:100},
+      {l:"No protection either way", s:42},
+      {l:"It has been, or can be, narrowed after the fact", s:10}
+    ]},
+  { id:"bydesign", role:"reach", name:"Records kept by design", fam:"governance",
+    q:"Are the records of how decisions get made created and kept by design — not only when someone asks?",
+    opts:[
+      {l:"Yes — kept by design, reachable on their own", s:100},
+      {l:"Only produced when requested", s:40},
+      {l:"Not kept reliably", s:15}
+    ]}
+];
+
+const REMEDIES = {
+  reach:["Check how the result is made, not just the result","Verify the conditions a result is built on before treating it as legitimate, instead of only reviewing the final decision to release or withhold."],
+  docs:["Treat full documentation as the floor","Require full documentation of how every governed result is made — where it came from, how it was handled, what was left out, how it can be challenged — as the floor, not a target."],
+  lag:["Publish the lag","When the accessibility of a class of records changes, publish the gap between that change and any pending obligation it cancels."],
+  contest:["Allow challenge before harm","Give the people affected a way to challenge or withdraw before a result reaches them, not only after."],
+  antiretro:["Lock against after-the-fact narrowing","Adopt a standing rule that accountability instruments cannot be narrowed after the fact over records already in dispute."],
+  bydesign:["Keep records by design","Records of public business must be created, kept, and made reachable by design — independent of any later request that seeks them."]
+};
+
+let STATE = { answers:{}, name:"", out:"" };
+
+function nm(){ return STATE.name.trim() || "this instrument"; }
+function ou(){ return STATE.out.trim() || "the outcome"; }
+
+function renderFrame(){
+  document.getElementById('frame').textContent =
+    '“Does ' + nm() + ' govern only ' + ou() + ' — or how ' + ou() +
+    ' get made: the criteria, the steps, and what gets left out?”';
+}
+
+function renderQuestions(){
+  const c=document.getElementById('questions'); c.innerHTML='';
+  DIMS.forEach((dim,i)=>{
+    const wrap=document.createElement('div'); wrap.className='q';
+    const gate = dim.gate ? '<span class="gate-tag">FLOOR</span>' : '';
+    wrap.innerHTML='<div class="q-head"><div class="q-num">'+String(i+1).padStart(2,'0')+'</div>'+
+      '<div class="q-text">'+dim.q+gate+'</div></div>'+(dim.help?'<div class="q-help">'+dim.help+'</div>':'');
+    const opts=document.createElement('div'); opts.className='opts';
+    dim.opts.forEach((o,oi)=>{
+      const sel=STATE.answers[dim.id]===oi;
+      const el=document.createElement('div'); el.className='opt'+(sel?' sel':'');
+      el.innerHTML='<span class="dot"></span><span>'+o.l+'</span>';
+      el.onclick=()=>{STATE.answers[dim.id]=oi;renderQuestions();compute();};
+      opts.appendChild(el);
+    });
+    wrap.appendChild(opts); c.appendChild(wrap);
+  });
+}
+
+function score(dim){ const a=STATE.answers[dim.id]; return a===undefined?null:dim.opts[a].s; }
+function answeredAll(){ return DIMS.every(d=>STATE.answers[d.id]!==undefined); }
+
+function compute(){
+  const reachDims=DIMS.filter(d=>d.role==='reach'||d.role==='gate');
+  const reachScores=reachDims.map(score).filter(v=>v!==null);
+  const anyAns=reachScores.length>0 || score(DIMS[0])!==null;
+  const reach=reachScores.length?Math.round(reachScores.reduce((a,b)=>a+b,0)/reachScores.length):0;
+
+  const specS=score(DIMS.find(d=>d.id==='spec'));
+  const excess=specS===null?0:(100-specS);
+  const threshPos=Math.round(28+excess*0.46);
+  const docs=score(DIMS.find(d=>d.id==='docs'));
+  const gateFail=docs!==null && docs<100;
+
+  const H=248, y=v=>H*(1-v/100);
+  document.getElementById('threshLine').style.top=y(threshPos)+'px';
+  const mv=anyAns?reach:50;
+  document.getElementById('marker').style.top=y(mv)+'px';
+  const ml=document.getElementById('markerLabel');
+  ml.style.top=y(mv)+'px'; ml.textContent='reach '+(anyAns?reach:'—');
+
+  const margin=reach-threshPos;
+  let cls,name,desc;
+  if(!answeredAll()){
+    cls='s-mid'; name=anyAns?'Reading…':'Awaiting input';
+    desc='Answer all '+DIMS.length+' dimensions for a settled verdict. The threshold rises as '+nm()+' becomes harder to predict in advance.';
+  } else if(gateFail){
+    cls='s-bad'; name='Inside the Threshold';
+    desc='Documentation is below the floor, so '+nm()+' is — by definition — inside the threshold. It is acting on '+ou()+' without a checkable record of how they are made.';
+  } else if(margin>=15){
+    cls='s-ok'; name='Enough For Now';
+    desc='The instrument reaches further than this system demands. It governs how '+ou()+' are made, not just the result — sound and sufficient for now.';
+  } else if(margin>=-15){
+    cls='s-mid'; name='At the Threshold';
+    desc='The instrument sits level with what the system demands of it. A little more unpredictability, or any drop in how far it reaches, tips it past the line.';
+  } else {
+    cls='s-bad'; name='Past the Threshold';
+    desc='The system produces effects '+nm()+' cannot see coming. Still formally valid, but no longer enough — the harm is done before the result anyone inspects is even reached.';
+  }
+  document.getElementById('verdictName').className='verdict-name '+cls;
+  document.getElementById('verdictName').textContent=name;
+  document.getElementById('verdictDesc').textContent=desc;
+
+  const gf=document.getElementById('gateFlag');
+  if(docs===null){ gf.style.display='none'; }
+  else if(gateFail){ gf.style.display='block'; gf.className='gate-flag';
+    gf.innerHTML='FLOOR BREACHED — documentation '+docs+'/100. Full coverage is a precondition, not a target. Nothing else can lift this above the threshold.'; }
+  else { gf.style.display='block'; gf.className='gate-flag clear';
+    gf.innerHTML='FLOOR MET — documentation 100/100. Precondition satisfied; the verdict is set by reach against the threshold.'; }
+
+  const gov=DIMS.filter(d=>d.fam==='governance').map(score).filter(v=>v!==null);
+  const perf=DIMS.filter(d=>d.fam==='performance').map(score).filter(v=>v!==null);
+  const governance=gov.length?Math.round(gov.reduce((a,b)=>a+b,0)/gov.length):0;
+  const performance=perf.length?Math.round(perf.reduce((a,b)=>a+b,0)/perf.length):0;
+  const risk=anyAns?Math.round(Math.min(100,Math.max(0,(excess+(100-reach))/2))):0;
+
+  renderGauges([
+    {label:"Blind-spot risk", val:risk, invert:true},
+    {label:"Governance reach", val:governance, invert:false},
+    {label:"Responsiveness", val:performance, invert:false}
+  ]);
+  renderDims();
+  renderBlindspots();
+}
+
+function col(v,inv){ const g=inv?v<=33:v>=70, b=inv?v>=67:v<=40;
+  return g?'var(--verified)':(b?'var(--signal)':'var(--amber)'); }
+function word(v,inv){ const g=inv?v<=33:v>=70, b=inv?v>=67:v<=40;
+  return g?'sound':(b?'exposed':'watch'); }
+
+function renderGauges(list){
+  const c=document.getElementById('gauges'); c.innerHTML='';
+  list.forEach(g=>{ const k=col(g.val,g.invert); const el=document.createElement('div'); el.className='gauge';
+    el.innerHTML='<div class="g-label">'+g.label+'</div>'+
+      '<div class="g-val" style="color:'+k+'">'+g.val+'</div>'+
+      '<div class="g-state" style="color:'+k+'">'+word(g.val,g.invert)+'</div>'+
+      '<div class="g-bar"><div class="g-fill" style="width:'+g.val+'%;background:'+k+'"></div></div>';
+    c.appendChild(el); });
+}
+
+function renderDims(){
+  const c=document.getElementById('dimList'); c.innerHTML='';
+  DIMS.forEach(dim=>{ const v=score(dim); if(v===null) return;
+    const k=v>=70?'var(--verified)':(v<=40?'var(--signal)':'var(--amber)');
+    const el=document.createElement('div'); el.className='dim';
+    el.innerHTML='<div class="dim-top"><span class="dim-name">'+dim.name+(dim.gate?' · floor':'')+'</span>'+
+      '<span class="dim-score">'+v+'/100</span></div>'+
+      '<div class="dim-bar"><div class="dim-fill" style="width:'+v+'%;background:'+k+'"></div></div>';
+    c.appendChild(el); });
+}
+
+function renderBlindspots(){
+  const c=document.getElementById('blindspots'); c.innerHTML='';
+  const head=document.createElement('div'); head.className='panel-label'; head.style.marginBottom='14px';
+  head.innerHTML='Blind spots & the controls that close them'; c.appendChild(head);
+
+  const weak=[];
+  DIMS.forEach(dim=>{ const v=score(dim); if(v===null||dim.id==='spec') return;
+    if(v<70 && REMEDIES[dim.id]) weak.push({dim,v}); });
+  weak.sort((a,b)=>a.v-b.v);
+
+  if(weak.length===0){
+    const ok=document.createElement('div'); ok.className='bs-clean';
+    ok.textContent=score(DIMS.find(d=>d.id==='docs'))===null
+      ? 'Answer the interrogation to surface blind spots.'
+      : 'No blind spots above tolerance. The instrument reaches how its results are made; keep documentation at the floor.';
+    c.appendChild(ok); return;
+  }
+  weak.forEach(({dim})=>{ const r=REMEDIES[dim.id];
+    const item=document.createElement('div'); item.className='bs-item';
+    item.innerHTML='<div class="bs-head"><span class="bs-dot"></span><span class="bs-name">'+dim.name+'</span></div>'+
+      '<div class="bs-rec"><span class="lead">'+r[0]+'</span>'+r[1]+'</div>';
+    c.appendChild(item); });
+}
+
+document.getElementById('inName').addEventListener('input',e=>{STATE.name=e.target.value;renderFrame();compute();});
+document.getElementById('inOut').addEventListener('input',e=>{STATE.out=e.target.value;renderFrame();compute();});
+
+renderFrame(); renderQuestions(); compute();
+</script>
+</body>
+</html>
