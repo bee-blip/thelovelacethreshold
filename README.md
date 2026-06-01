@@ -62,4 +62,19 @@ This is a single, self-contained static file with no backend and no build step.
 ## Tailored version
 This is the open, generic version. A version fitted to a specific domain requires your own measures, record classes, a working dashboard. wired to real data can developed through a consultation.
 
-_DISCLAIMER: This is a prototype. The scoring demonstrates the logic; it is not a certified audit. As a learning-and-integration concept, this is where an organization (or government, or system) starts learning from what's been broken and folding that learning into how it operates day to day, so harm can be prevented._
+---
+
+### Author
+Bhavyatta Bhardwaj, Canada
+**Related work**: Bhavyatta, B. (2026). The Lovelace Threshold: A Governance Diagnostic Beyond Bounded Systems (1.0). Zenodo. https://doi.org/10.5281/zenodo.20045615
+
+### License
+
+The methodology document is licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+The code in `index.html is licensed under the Apache License.
+For commercial application and licensing inquiries, contact at info@bhavyattabhardwaj.com.
+
+---
+
+_DISCLAIMER: This is a prototype. The scoring demonstrates the logic; it is not a certified audit. As a learning-and-integration concept, this is where an organization (or government, or system) starts learning from what's been broken and folding that learning into how it operates day to day, so harm can be prevented. AI was used in styling this dashboard. the concept, logic and questions remain author's_
+
